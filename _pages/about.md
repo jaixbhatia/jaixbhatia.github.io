@@ -2,7 +2,8 @@
 layout: about
 title: about
 permalink: /
-subtitle: <a href='#'>Affiliations</a>. Address. Contacts. Motto. Etc.
+subtitle: "Assistant Professor of Data Science and Statistics Education<br>Department of Mathematics and Statistics<br>San Diego State University"
+
 
 profile:
   align: right
