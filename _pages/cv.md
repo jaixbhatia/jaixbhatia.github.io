@@ -10,21 +10,12 @@ nav_order: 5
   .pdf-container {
     position: relative;
     width: 100%;
-    height: 0;
-    padding-top: 141.4%; /* A4 aspect ratio (1:1.414) */
-    overflow: hidden;
+    height: 100vh; /* Full viewport height */
+    overflow: auto; /* Allow scrolling */
   }
   .pdf-container object {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
-    height: 100%;
-  }
-  @media (max-width: 767px) {
-    .pdf-container {
-      padding-top: 150%; /* Slightly taller on mobile for better visibility */
-    }
+    height: 100%; /* Fill the container */
   }
 </style>
 
