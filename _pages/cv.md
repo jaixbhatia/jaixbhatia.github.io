@@ -4,7 +4,7 @@ permalink: /cv/
 title: cv
 nav: true
 nav_order: 5
-cv_pdf: CV_2025.pdf
+cv_pdf: /assets/pdf/CV_2025.pdf
 ---
 
 <style>
@@ -38,17 +38,17 @@ cv_pdf: CV_2025.pdf
 </style>
 
 <div class="button-container">
-  <a href="/assets/pdf/CV_2025.pdf" class="cv-button" target="_blank">View CV in New Tab</a>
+  <a href="{{ page.cv_pdf }}" class="cv-button" target="_blank">View CV in New Tab</a>
 </div>
 
 <div class="pdf-container">
   <object
-    data="/assets/pdf/CV_2025.pdf"
+    data="{{ page.cv_pdf }}"
     type="application/pdf"
     class="pdf-viewer">
     <div>
       <p>It appears you don't have a PDF plugin for this browser. 
-      You can <a href="/assets/pdf/CV_2025.pdf">click here to download the PDF file.</a></p>
+      You can <a href="{{ page.cv_pdf }}">click here to download the PDF file.</a></p>
     </div>
   </object>
 </div>
