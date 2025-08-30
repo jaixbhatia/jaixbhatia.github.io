@@ -1,0 +1,130 @@
+body {
+    padding: 100px;
+    width: 1000px;
+    margin: auto;
+    text-align: left;
+    font-weight: 300;
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+    color: rgb(55, 53, 47);
+}
+
+figcaption {
+    margin-right: 7vw;
+}
+
+#desc p{
+  font-size: 12px;
+  text-align: center;
+  padding-right: 20px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+    text-align: center;
+}
+
+table {
+    margin-left: 3vw;
+}
+
+div.padded {
+    padding-top: 0px;
+    padding-right: 100px;
+    padding-bottom: 0.25in;
+    padding-left: 100px;
+}
+
+.bold-italic {
+    font-weight: bold;
+    font-style: italic;
+}
+
+.image-row {
+    display: flex;
+    justify-content: space-around; /* Distribute space between images */
+    align-items: center; /* Align images vertically in the center */
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 10px; /* Space between images */
+}
+
+.image-container {
+    text-align: center; /* Center the text below images */
+    margin: 20px auto;
+    width: fit-content;
+    flex: 1; /* Allows containers to grow and shrink equally */
+    justify-content: center;
+    max-width: 600px; /* Ensures container does not exceed available width */
+    box-sizing: border-box; /* Includes padding and border in the element's total width and height */
+}
+
+.image-container img {
+    justify-content: center;
+    max-width: 100%; /* Ensures images are responsive */
+    height: auto; /* Maintains aspect ratio */
+    display: block; /* Removes whitespace below images */
+}
+
+.caption {
+    margin-top: 5px; /* Space between image and caption */
+    font-size: 14px; /* Font size for the caption */
+    color: #555; /* Color for the caption text */
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+
+.nav {
+    margin-bottom: 40px;
+}
+
+.nav a {
+    color: #0066cc;
+    text-decoration: none;
+    margin-right: 20px;
+}
+
+.nav a:hover {
+    text-decoration: underline;
+}
+
+.project {
+    margin: 30px 0;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.project h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.project a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.project a:hover {
+    text-decoration: underline;
+}
+
+.desc {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
