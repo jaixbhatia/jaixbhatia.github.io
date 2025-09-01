@@ -53,18 +53,22 @@ div.padded {
 .image-container {
     text-align: center; /* Center the text below images */
     margin: 20px auto;
-    width: fit-content;
+    width: 320px; /* Fixed width to accommodate 300px image + padding */
     flex: 1; /* Allows containers to grow and shrink equally */
     justify-content: center;
-    max-width: 600px; /* Ensures container does not exceed available width */
+    max-width: 320px; /* Ensures container does not exceed available width */
     box-sizing: border-box; /* Includes padding and border in the element's total width and height */
+    padding: 10px; /* Add some padding around the image */
 }
 
 .image-container img {
     justify-content: center;
-    max-width: 100%; /* Ensures images are responsive */
-    height: auto; /* Maintains aspect ratio */
+    width: 300px; /* Fixed width for all images */
+    height: 300px; /* Fixed height for all images */
+    object-fit: cover; /* Maintains aspect ratio while filling container */
     display: block; /* Removes whitespace below images */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Subtle shadow */
 }
 
 .caption {
