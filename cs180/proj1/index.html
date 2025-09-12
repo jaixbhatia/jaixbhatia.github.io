@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project 1</title>
+    <link rel="stylesheet" href="../../style.css?v=1.1">
+</head>
+<body>
+    <h1>Project 1: Colorizing the Prokudin-Gorskii Photo Collection</h1>
+    
+    <h2>Overview</h2>
+    <txt>
+        This project focuses on automatically producing color images from the digitized Prokudin-Gorskii glass plate images. 
+        Sergei Mikhailovich Prokudin-Gorskii (1863-1944) was a pioneer in color photography who captured thousands of color 
+        pictures of the Russian Empire by recording three exposures of every scene using red, green, and blue filters. 
+        The goal is to extract the three color channel images, align them properly, and combine them into a single RGB color image.
+    </txt>
+
+    <h2>Approach</h2>
+    <txt>
+        <strong>Single-Scale Alignment:</strong> I implemented an exhaustive search algorithm that searches over a window of 
+        possible displacements (+-15 pixels) and scores each displacement using image matching metrics. I used two 
+        different metrics: L2 distance (Euclidean Distance) and Normalized Cross-Correlation (NCC).
+        <br><br>
+        <strong>Image Pyramid:</strong> For large images (tiff files), I implemented an image pyramid approach that processes images 
+        at multiple scales, starting from the coarsest scale and refining the alignment as we move down the pyramid. This 
+        significantly speeds up the alignment process for high-resolution images since we running single-scale alignment
+        multiple times on coarser images is much faster than running a large window on the original image
+        <br>
+        <br> Specifically, I use cv2.resize to scale the image down by a scale factor, then I find the best shift parameter.
+        I pass this up the recursion stack and use it to scale the image back up to the original size (via coarse shift * scale factor)
+        <br>
+        <p>Simple example:
+            Imagine you have a huge 4000x4000 image and you try every possible shift in a 31x31 window. That is about <b>15 billion comparisons</b>. 
+            With an image pyramid, you first align on a tiny 500x500 version (only ~0.2 billion comparisons), then refine on 1000x1000, 2000x2000, and finally 4000x4000 with much smaller windows. 
+            Altogether thats only about <b>1.3 billion comparisons</b>. 
+            Result: <b>>10x speedup</b>.
+            </p>
+        <strong>Border Cropping:</strong> I crop 10% of the border from each channel to avoid alignment issues caused by 
+        border artifacts that don't contain useful image information.
+        <br><br>
+        Generally, I use cv2 to read the images and split the images into the BGR channels. Then I crop the borders.
+            Finally I align R and B to G, but I also experimented with using R as the anchor to compare performance. I then apply the best 
+            shift parameters found via single-scale alignment or the image pyramid approachto R and B via np.roll and stack them together with G to get the final aligned image.
+        <br><br>
+    </txt>
+
+    <h3>Single-Scale Results</h3>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/cathedral/cathedral.png" alt="Cathedral - Original">
+            <figcaption>Cathedral Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/cathedral/cathedral_aligned.png" alt="Cathedral - Aligned">
+            <figcaption>Cathedral Aligned<br><strong>Shifts:</strong> R(x=1, y=7), B(x=-2, y=-5)</figcaption>
+        </div>
+    </div>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/monastery/monastery.png" alt="Monastery - Original">
+            <figcaption>Monastery Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/monastery/monastery_aligned.png" alt="Monastery - Aligned">
+            <figcaption>Monastery Aligned<br><strong>Shifts:</strong> R(x=1, y=6), B(x=-2, y=3)</figcaption>
+        </div>
+    </div>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/tobolsk/tobolsk.png" alt="Tobolsk - Original">
+            <figcaption>Tobolsk Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/tobolsk/tobolsk_aligned.png" alt="Tobolsk - Aligned">
+            <figcaption>Tobolsk Aligned<br><strong>Shifts:</strong> R(x=1, y=4), B(x=-3, y=-3)</figcaption>
+        </div>
+    </div>
+
+
+    <h2>Challenges and Solutions</h2>
+    <txt>
+        <strong>Challenge 1:</strong> Different brightness values between color channels (since red, green, and blue plates were captured separately)<br>
+        <strong>Solution:</strong> Used Normalized Cross-Correlation instead of raw pixel comparison.
+        Using L2 distance meant a high bias due to this contrast difference
+        (e.g. a bright red channel vs a dim red channel would still have a high L2 distance even if perfectly aligned).
+        
+        By scaling each pixel by its mean value, we can normalize the brightness of the channels, which makes the comparison invariant to contrast differences.
+        <br><br>
+
+        <strong>Challenge 2:</strong> Pyramid approach runtime optimization<br>
+        <strong>Solution:</strong> I set a coarse_shift (-10, 10) and a normal_shift (-5, 5).
+        This improved runtime to <5 seconds for all images, since a greater shift range on the large tiff images would have taken too long.
+        The hypothesis was that if my coarsest image had a large shift range, it would find an accurate shift that 
+        would not mess up the downstream alignment (and that going down the pyramid means we are safe searching through a smaller shift range)
+        <br><br>
+        
+        <strong>Challenge 3:</strong> Image not lined up using pyramid approach<br>
+        <strong>Solution 1:</strong> I noticed that the coarsest scale of the pyramid was a 64x64 image,
+        and that I was getting a shift of ~5 for some images. During the scaling up process (going back down the pyramid),
+        this greatly affected the shifts (e.g. if I got a shift of 5 on the coarsest scale, it would be 5*4 = 20 on the next scale, 
+        5*4*4 = 80 on the next scale, etc.). So I changed the base case to be 256x256, which greatly improved the shifts.
+        Turns out that the 64x64 messed up too much of the image for the output scale to be useful, which affected the downstream alignment.
+        I plotted the images at each step of the pyramid to confirm my hypothesis.<br>
+        <div class="image-row">
+            <div class="image-container">
+                <img src="images/before_solution_1.jpg">
+                <figcaption>Before challenge 3 solution 1
+                    <br>- Notice the large (4, 9) shift at the coarsest image has downstream effects (x_shift is 704 at the original image scale!). 
+                    <br>- Also notice that the shape of the coarsest image is (40,46) 
+                    <br>- Look at how misaligned the blue is!</figcaption>
+            </div>
+            <div class="image-container">
+                <img src="images/after_solution_1.jpg">
+                <figcaption>After challenge 3 solution 1
+                    <br>- Notice the shift is now (-5, -3) at the coarsest image, which doesn't trap us at the wrong local minima (x_shift is now -44 at the original image scale!)
+                    <br>- Also notice that the shape of the coarsest image is (161, 185), which gives us better context than before
+                    <br>- Look at how much better the blue is aligned!</figcaption>
+            </div>
+        </div>
+
+        
+        <strong>Solution 2:</strong> Changed the reference image to green instead of red. The green channel
+        is more aligned to both red and blue so the shifts needed to align red->green and blue->green are smaller.
+        This means less cropping, less accumulated error, and better alignment
+        <div class="image-row">
+            <div class="image-container">
+                <img src="images/challenge_3_solution_2_before.jpg">
+                <figcaption>After challenge 3 solution 1, before challenge 3 solution 2
+                    <br>- Notice the large (-3, -5) shift at the coarsest image has downstream effects. Look at the top of his cap</figcaption>
+            </div>
+            <div class="image-container">
+                <img src="images/challenge_3_solution_2_after.jpg">
+                <figcaption>After challenge 3 solution 2
+                    <br>- Notice the shift is now (-3, -2) at the coarsest image, which doesn't trap us at the wrong local minima</figcaption>
+            </div>
+        </div>
+
+    
+    </txt>
+
+
+    <h2>.tif Alignment Results (NCC + image pyramid)</h2>
+    <txt>
+        Below are the results of the color channel alignment using Normalized Cross-Correlation (NCC). 
+        Each image shows the final aligned result with the corresponding shift values for the Red (R) and Blue (B) 
+        channels relative to the Green channel (which is kept fixed as the reference).
+    </txt>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/emir/emir.png" alt="Emir of Bukhara - Original">
+            <figcaption>Emir of Bukhara - Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/emir/emir_aligned.png" alt="Emir of Bukhara - Aligned">
+            <figcaption>Emir of Bukhara - Aligned<br><strong>Shifts:</strong> R(x=17, y=57), B(x=-24, y=-49)</figcaption>
+        </div>
+    </div>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/three_generations/three_generations.png" alt="Three Generations - Original">
+            <figcaption>Three Generations - Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/three_generations/three_generations_aligned.png" alt="Three Generations - Aligned">
+            <figcaption>Three Generations - Aligned<br><strong>Shifts:</strong> R(x=-3, y=58), B(x=-14, y=-53)</figcaption>
+        </div>
+    </div>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/church/church.png" alt="Church - Original">
+            <figcaption>Church - Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/church/church_aligned.png" alt="Church - Aligned">
+            <figcaption>Church - Aligned<br><strong>Shifts:</strong> R(x=-8, y=33), B(x=-4, y=-25)</figcaption>
+        </div>
+    </div>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/siren/siren.png" alt="Siren - Original">
+            <figcaption>Siren - Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/siren/siren_aligned.png" alt="Siren - Aligned">
+            <figcaption>Siren - Aligned<br><strong>Shifts:</strong> R(x=-2, y=5), B(x=-3, y=3)</figcaption>
+        </div>
+    </div>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/harvesters/harvesters.png" alt="Harvesters - Original">
+            <figcaption>Harvesters - Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/harvesters/harvesters_aligned.png" alt="Harvesters - Aligned">
+            <figcaption>Harvesters - Aligned<br><strong>Shifts:</strong> R(x=59, y=24), B(x=112, y=49)</figcaption>
+        </div>
+    </div>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/icon/icon.png" alt="Icon - Original">
+            <figcaption>Icon - Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/icon/icon_aligned.png" alt="Icon - Aligned">
+            <figcaption>Icon - Aligned<br><strong>Shifts:</strong> R(x=40, y=16), B(x=90, y=23)</figcaption>
+        </div>
+    </div>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/lugano/lugano.png" alt="Lugano - Original">
+            <figcaption>Lugano - Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/lugano/lugano_aligned.png" alt="Lugano - Aligned">
+            <figcaption>Lugano - Aligned<br><strong>Shifts:</strong> R(x=41, y=-11), B(x=93, y=-29)</figcaption>
+        </div>
+    </div>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/melons/melons.png" alt="Melons - Original">
+            <figcaption>Melons - Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/melons/melons_aligned.png" alt="Melons - Aligned">
+            <figcaption>Melons - Aligned<br><strong>Shifts:</strong> R(x=83, y=4), B(x=176, y=7)</figcaption>
+        </div>
+    </div>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/italil/italil.png" alt="Italil - Original">
+            <figcaption>Italil - Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/italil/italil_aligned.png" alt="Italil - Aligned">
+            <figcaption>Italil - Aligned<br><strong>Shifts:</strong> R(x=25, y=-2), B(x=61, y=-14)</figcaption>
+        </div>
+    </div>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/lastochikino/lastochikino.png" alt="Lastochikino - Original">
+            <figcaption>Lastochikino - Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/lastochikino/lastochikino_aligned.png" alt="Lastochikino - Aligned">
+            <figcaption>Lastochikino - Aligned<br><strong>Shifts:</strong> R(x=-3, y=-3), B(x=76, y=-8)</figcaption>
+        </div>
+    </div>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/self_portrait/self_portrait.png" alt="Self Portrait - Original">
+            <figcaption>Self Portrait - Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/self_portrait/self_portrait_aligned.png" alt="Self Portrait - Aligned">
+            <figcaption>Self Portrait - Aligned<br><strong>Shifts:</strong> R(x=39, y=22), B(x=76, y=35)</figcaption>
+        </div>
+    </div>
+
+    <h2>Additional Prokudin-Gorskii Collection Examples</h2>
+    <txt>
+        Here are additional examples from the Prokudin-Gorskii collection that demonstrate the robustness 
+        of the NCC alignment algorithm across different types of historical photographs with varying 
+        lighting conditions and architectural subjects.
+    </txt>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/beans/beans.png" alt="Beans - Original">
+            <figcaption>Beans - Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/beans/beans_aligned.png" alt="Beans - Aligned">
+            <figcaption>Beans - Aligned<br><strong>Shifts:</strong> R(x=-43, y=67), B(x=38, y=-41)</figcaption>
+        </div>
+    </div>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/stone_gate/stone_gate.png" alt="Stone Gate - Original">
+            <figcaption>Stone Gate - Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/stone_gate/stone_gate_aligned.png" alt="Stone Gate - Aligned">
+            <figcaption>Stone Gate - Aligned<br><strong>Shifts:</strong> R(x=1, y=64), B(x=-3, y=-35)</figcaption>
+        </div>
+    </div>
+
+    <div class="image-row">
+        <div class="image-container">
+            <img src="images/mosque/mosque.png" alt="Mosque - Original">
+            <figcaption>Mosque - Original</figcaption>
+        </div>
+        <div class="image-container">
+            <img src="images/mosque/mosque_aligned.png" alt="Mosque - Aligned">
+            <figcaption>Mosque - Aligned<br><strong>Shifts:</strong> R(x=1, y=44), B(x=-10, y=-26)</figcaption>
+        </div>
+    </div>
+
+    <div class="nav">
+        <a href="../index.html">Back to CS180</a>|
+        <a href="../../index.html">Back to Main Portfolio</a>
+    </div>
+</body>
+</html>

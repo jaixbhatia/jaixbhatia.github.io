@@ -1,0 +1,1 @@
+Best shift: R(x=-7, y=78), B(x=2, y=3)

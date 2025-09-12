@@ -53,10 +53,10 @@ div.padded {
 .image-container {
     text-align: center; /* Center the text below images */
     margin: 20px auto;
-    width: 220px; /* Fixed width to accommodate 200px image + padding */
+    width: 400px; /* Fixed width to accommodate 200px image + padding */
     flex: 1; /* Allows containers to grow and shrink equally */
     justify-content: center;
-    max-width: 220px; /* Ensures container does not exceed available width */
+    max-width: 400px; /* Ensures container does not exceed available width */
     box-sizing: border-box; /* Includes padding and border in the element's total width and height */
     padding: 10px; /* Add some padding around the image */
 }
@@ -64,8 +64,8 @@ div.padded {
 .image-container img,
 .image-container video {
     justify-content: center;
-    width: 200px; /* Fixed width for all images and videos */
-    height: 200px; /* Fixed height for all images and videos */
+    width: 400px; /* Fixed width for all images and videos */
+    height: 400px; /* Fixed height for all images and videos */
     object-fit: cover; /* Maintains aspect ratio while filling container */
     display: block; /* Removes whitespace below images */
     border-radius: 8px; /* Rounded corners */
@@ -132,4 +132,71 @@ a {
 
 a:hover {
     text-decoration: underline;
+}
+
+/* Calculation breakdown styling */
+.calculation-breakdown {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.calculation-breakdown h4 {
+    color: #2c3e50;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: left;
+    font-size: 18px;
+}
+
+.calc-section {
+    margin: 15px 0;
+    padding: 15px;
+    background: white;
+    border-radius: 6px;
+    border-left: 4px solid #3498db;
+}
+
+.calc-section h5 {
+    color: #34495e;
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: left;
+    font-size: 16px;
+}
+
+.calc-section ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.calc-section li {
+    margin: 8px 0;
+    line-height: 1.4;
+}
+
+.highlight {
+    background: #e8f4fd;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: bold;
+    color: #2980b9;
+}
+
+.speedup-result {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 15px;
+    text-align: center;
+}
+
+.speedup-result p {
+    margin: 0;
+    font-size: 18px;
+    color: #155724;
 }
