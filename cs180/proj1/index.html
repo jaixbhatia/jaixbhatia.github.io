@@ -99,9 +99,9 @@
         
         <strong>Challenge 3:</strong> Image not lined up using pyramid approach<br>
         <strong>Solution 1:</strong> I noticed that the coarsest scale of the pyramid was a 64x64 image,
-        and that I was getting a shift of ~5 for some images. During the scaling up process (going back down the pyramid),
-        this greatly affected the shifts (e.g. if I got a shift of 5 on the coarsest scale, it would be 5*4 = 20 on the next scale, 
-        5*4*4 = 80 on the next scale, etc.). So I changed the base case to be 256x256, which greatly improved the shifts.
+        and that I was getting large shifts for some images. During the scaling up process (going back down the pyramid),
+        this greatly affected the shifts (e.g. if I got a shift of 9 on the coarsest scale, it would be 9*2 = 18 on the next scale, 
+        9*2*2 = 36 on the next scale, etc.). So I changed the base case to be 256x256, which greatly improved the shifts.
         Turns out that the 64x64 messed up too much of the image for the output scale to be useful, which affected the downstream alignment.
         I plotted the images at each step of the pyramid to confirm my hypothesis.<br>
         <div class="image-row">
